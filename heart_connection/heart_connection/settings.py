@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'users.apps.UsersConfig',
 ]
 
@@ -98,6 +99,15 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated', 
+    ],
+
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ]
+} 
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -120,3 +130,12 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+#Настройка почты
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.heart_connection.com'  # SMTP-сервер провайдера электронной почты
+EMAIL_PORT = 587  # Порт SMTP-сервера 
+EMAIL_HOST_USER = 'email@heart_connection.com'  # Ваш адрес электронной почты
+EMAIL_HOST_PASSWORD = 'email-password'  # Пароль от адреса электронной почты
+EMAIL_USE_TLS = True  # Использовать TLS (Transport Layer Security) для безопасной связи
+DEFAULT_FROM_EMAIL = 'email@heart_connection.com'  # Адрес отправителя по умолчанию

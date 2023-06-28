@@ -1,8 +1,9 @@
 from io import BytesIO
 from PIL import Image
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.contrib.auth import authenticate
 from rest_framework import serializers
-from .models import CustomUser
+from .models import CustomUser, Rating
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -23,7 +24,6 @@ class CustomUserSerializer(serializers.ModelSerializer):
         processed_avatar = InMemoryUploadedFile(
             output, None, f'{avatar.name.split(".")[0]}_processed.png', 'image/png', output.tell(), None
         )
-
         user = CustomUser(
             email=validated_data['email'],
             first_name=validated_data['first_name'],
@@ -34,3 +34,30 @@ class CustomUserSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
+
+
+class CustomAuthTokenSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField()
+
+    def validate(self, attrs):
+        email = attrs.get('email')
+        password = attrs.get('password')
+        if email and password:
+            user = authenticate(request=self.context.get('request'), email=email, password=password)
+            if not user:
+                msg = 'Невозможно аутентифицировать с предоставленными данными'
+                raise serializers.ValidationError(msg, code='authorization')
+        else:
+            msg = 'Пожалуйста, предоставьте адрес электронной почты и пароль'
+            raise serializers.ValidationError(msg, code='authorization')
+        attrs['user'] = user
+        return attrs
+
+
+class RatingSerializer(serializers.ModelSerializer):
+    rating = serializers.BooleanField()
+
+    class Meta:
+        model = Rating
+        fields = ('from_user', 'to_user', 'rating')
