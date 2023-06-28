@@ -18,9 +18,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 SECRET_KEY = 'django-insecure-n0h%9e8c$iq2*0qjymyj&n05of4a07v89ecp6qq4y9a*$l!jus'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['158.160.20.8', '127.0.0.1', 'localhost', 'heart-connection.ddns.net']
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
@@ -136,9 +136,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #Настройка почты
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.heart_connection.com'  # SMTP-сервер провайдера электронной почты
-EMAIL_PORT = 587  # Порт SMTP-сервера 
-EMAIL_HOST_USER = 'email@heart_connection.com'  # Ваш адрес электронной почты
-EMAIL_HOST_PASSWORD = 'email-password'  # Пароль от адреса электронной почты
-EMAIL_USE_TLS = True  # Использовать TLS (Transport Layer Security) для безопасной связи
-DEFAULT_FROM_EMAIL = 'email@heart_connection.com'  # Адрес отправителя по умолчанию
+EMAIL_HOST = 'smtp.yandex.ru'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'heart-connection-love@yandex.ru'
+EMAIL_HOST_PASSWORD = 'Fhntv9009'
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'heart-connection-love@yandex.ru'

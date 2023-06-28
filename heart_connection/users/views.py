@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
@@ -19,7 +20,6 @@ User = get_user_model()
 @authentication_classes([SessionAuthentication, BasicAuthentication])
 @permission_classes([AllowAny])
 class CustomUserCreateAPIView(APIView):
-
     def post(self, request, format=None):
         serializer = CustomUserSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
@@ -32,8 +32,18 @@ class UserListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
     filterset_class = CustomUserFilter
+    filter_backends = [DjangoFilterBackend]
+    ordering_fields = ['id', 'first_name', 'last_name']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # Дополнительная оптимизация запроса, чтобы избежать N+1 проблемы
+        queryset = queryset.only('id', 'first_name', 'last_name', 'gender', 'avatar', 'longitude', 'latitude')
+        return queryset
 
 
+@authentication_classes([SessionAuthentication, BasicAuthentication])
+@permission_classes([AllowAny])
 class CustomAuthTokenView(ObtainAuthToken):
     serializer_class = CustomAuthTokenSerializer
 
@@ -94,11 +104,11 @@ class UserMatchView(APIView):
         if exists_rating_from and exists_rating_to:
             to_user = User.objects.get(id=to_user_id)
             message_from_user = f'Вы понравились {to_user.first_name}! Почта участника: {to_user.email}'
-            # send_notification(from_user.email, message_from_user)
-            print(message_from_user)
+            send_notification(from_user.email, message_from_user)
+            # print(message_from_user)
             message_to_user = f'Вы понравились {from_user.first_name}! Почта участника: {from_user.email}'
-            # send_notification(to_user.email, message_to_user)
-            print(message_to_user)
+            send_notification(to_user.email, message_to_user)
+            # print(message_to_user)
             return Response({'detail': 'Взаимная симпатия'}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.data, status=status.HTTP_201_CREATED)

@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from .managers import CustomUserManager
 from django.conf import settings
+from .managers import CustomUserManager
 
 
 class CustomUser(AbstractUser):
@@ -15,6 +15,18 @@ class CustomUser(AbstractUser):
     email = models.EmailField(unique=True, verbose_name='Почта')
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, verbose_name='Пол')
     avatar = models.ImageField(upload_to='avatars/', verbose_name='Аватар')
+    longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        blank=False,
+        verbose_name='Долгота'
+    )
+    latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        blank=False,
+        verbose_name='Широта'
+    )
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name', 'gender', 'avatar']
     objects = CustomUserManager()
