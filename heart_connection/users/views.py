@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import CustomUserSerializer, CustomAuthTokenSerializer, RatingSerializer
 from .models import Rating
+from .filters import CustomUserFilter
 from scripts.send_email import send_notification
 
 
@@ -25,6 +26,12 @@ class CustomUserCreateAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class UserListView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = CustomUserSerializer
+    filterset_class = CustomUserFilter
 
 
 class CustomAuthTokenView(ObtainAuthToken):
@@ -38,30 +45,29 @@ class CustomAuthTokenView(ObtainAuthToken):
         return Response({'token': token.key})
 
 
-class UserMatchView(generics.CreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = RatingSerializer
-
-    def create(self, request, *args, **kwargs):
-        to_user = self.get_object()
+class UserMatchView(APIView):
+    def post(self, request, *args, **kwargs):
         to_user_id = kwargs.get('pk')
         from_user = request.user
         from_user_id = request.user.id
         rating = request.data.get('rating')
+        
         if from_user_id == to_user_id:
             return Response(
                 {'detail': 'Нельзя оценивать самого себя'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
         existing_rating_from = Rating.objects.filter(
             from_user=from_user_id,
             to_user=to_user_id
         ).first()
+
         if existing_rating_from:
             # Если оценка от from_user уже существует, обновляем ее значение
             existing_rating_from.rating = rating
             existing_rating_from.save()
-            serializer = self.get_serializer(existing_rating_from)
+            serializer = RatingSerializer(existing_rating_from)
         else:
             # Если оценка от from_user не существует, создаем новую оценку
             rating_data = {
@@ -69,7 +75,7 @@ class UserMatchView(generics.CreateAPIView):
                 'to_user': to_user_id,
                 'rating': rating
             }
-            serializer = self.get_serializer(data=rating_data)
+            serializer = RatingSerializer(data=rating_data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
@@ -84,7 +90,9 @@ class UserMatchView(generics.CreateAPIView):
             to_user=to_user_id,
             rating=True
         ).exists()
+
         if exists_rating_from and exists_rating_to:
+            to_user = User.objects.get(id=to_user_id)
             message_from_user = f'Вы понравились {to_user.first_name}! Почта участника: {to_user.email}'
             # send_notification(from_user.email, message_from_user)
             print(message_from_user)
